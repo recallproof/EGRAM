@@ -1,156 +1,326 @@
+import { useState } from 'react'
 import {
-  ArrowUpRight,
+  ArrowRight,
   BadgeCheck,
   Clock3,
+  Code2,
+  FileCheck2,
   Fingerprint,
   GitCompareArrows,
-  History,
-  ShieldAlert,
-  Sparkles,
+  KeyRound,
+  LockKeyhole,
+  Network,
+  ShieldCheck,
+  Split,
 } from 'lucide-react'
 import './App.css'
 
-const packetFields = [
-  'Source Trace',
-  'Memory Hash',
-  'Recall Proof',
-  'Expiry Rule',
-  'Revision Trail',
-  'Conflict State',
-  'Trust Score',
+const sdkViews = [
+  {
+    id: 'sdk',
+    label: 'SDK Integration',
+    icon: Code2,
+    language: 'TypeScript',
+    proofTitle: 'Recall Proof',
+    proofStatus: 'verified',
+    code: [
+      "import { EngramMemory } from 'engram-protocol'",
+      '',
+      'const memory = new EngramMemory()',
+      '',
+      'const packet = await memory.remember({',
+      "  content: 'User prefers cold black premium branding.',",
+      '  source,',
+      "  metadata: { topic: 'brand.preference' },",
+      '})',
+      '',
+      'const recall = await memory.recall({',
+      "  text: 'premium branding',",
+      "  reason: 'Answer a design direction question.',",
+      '})',
+    ],
+    proof: [
+      ['memory_hash', '8f13Kp9...a91cQz'],
+      ['source_trace', 'user_input.launch-chat'],
+      ['policy_rule', 'recall.default_allow'],
+      ['recall_proof', 'verified'],
+      ['ledger_event', 'memory.recalled'],
+    ],
+  },
+  {
+    id: 'runtime',
+    label: 'Agent Runtime',
+    icon: Network,
+    language: 'Runtime',
+    proofTitle: 'Agent Memory',
+    proofStatus: 'resolved',
+    code: [
+      'const recall = await memory.recall({',
+      "  topic: 'project.positioning',",
+      "  reason: 'Select launch narrative.',",
+      '  limit: 3,',
+      '})',
+      '',
+      'for (const result of recall) {',
+      '  agent.context.add({',
+      '    content: result.packet.content,',
+      '    proof: result.proof.proofHash,',
+      '  })',
+      '}',
+    ],
+    proof: [
+      ['query', 'project.positioning'],
+      ['packets_used', '3'],
+      ['conflict_state', 'none'],
+      ['agent_context', 'proof-bound'],
+      ['runtime_event', 'memory.injected'],
+    ],
+  },
+  {
+    id: 'policy',
+    label: 'Policy Layer',
+    icon: ShieldCheck,
+    language: 'Policy',
+    proofTitle: 'Policy Gate',
+    proofStatus: 'passed',
+    code: [
+      'await memory.recall({',
+      "  topic: 'credential',",
+      "  includeFlagged: true,",
+      "  reason: 'User approved sensitive recall.',",
+      '  approvedPolicyIds: [',
+      "    'recall.sensitive'",
+      '  ],',
+      '})',
+      '',
+      'const snapshot = await memory.snapshot()',
+    ],
+    proof: [
+      ['policy_rule', 'recall.sensitive'],
+      ['approval', 'explicit'],
+      ['packet_flag', 'sensitive'],
+      ['ledger_payload', 'policyRuleId'],
+      ['recall_status', 'allowed'],
+    ],
+  },
 ]
 
-const utilities = [
+const proofStats = [
+  ['Packet hash', 'deterministic', '#packet'],
+  ['Ledger events', 'append-only', '#protocol'],
+  ['Policy rules', 'auditable', '#policy'],
+  ['Recall proof', 'hash-bound', '#sdk'],
+]
+
+const packetFields = [
   {
     icon: Fingerprint,
-    title: 'Prove where a memory came from',
-    text: 'Each memory can carry source, timestamp, hash, and provenance instead of living as loose text in a vector store.',
+    title: 'Source Trace',
+    text: 'Every packet records where the memory came from: user input, tool result, document, transaction, web source, or agent observation.',
   },
   {
-    icon: History,
-    title: 'Correct memory without erasing history',
-    text: 'Agents can update stale or false memories while preserving the revision trail that explains what changed.',
-  },
-  {
-    icon: ShieldAlert,
-    title: 'Flag poisoned or hallucinated memory',
-    text: 'Suspicious, disproven, or prompt-injected memory can be marked instead of silently shaping future decisions.',
-  },
-  {
-    icon: Clock3,
-    title: 'Let old memory expire',
-    text: 'Preferences, risk signals, and assumptions should decay when they stop being reliable.',
-  },
-  {
-    icon: GitCompareArrows,
-    title: 'Surface conflicts between memories',
-    text: 'When two memories disagree, Engram exposes the conflict instead of letting the agent blend them into a false certainty.',
+    icon: LockKeyhole,
+    title: 'Memory Hash',
+    text: 'A deterministic hash seals the memory body. Change the packet, and the verification result changes with it.',
   },
   {
     icon: BadgeCheck,
-    title: 'Generate recall proofs',
-    text: 'When an agent acts on memory, it can show which packet was recalled and why it mattered.',
+    title: 'Recall Proof',
+    text: 'When a memory is used, Engram can show which packet was recalled and why it influenced the response.',
+  },
+  {
+    icon: Clock3,
+    title: 'Expiry Rule',
+    text: 'Some memory should decay. Tool results and stale assumptions can expire before they silently control future behavior.',
+  },
+  {
+    icon: GitCompareArrows,
+    title: 'Revision Trail',
+    text: 'Agents can correct memory without deleting the past. Every revision keeps the previous hash.',
+  },
+  {
+    icon: Split,
+    title: 'Conflict State',
+    text: 'When two memories disagree, the conflict is surfaced instead of being blended into false certainty.',
   },
 ]
 
-const protocolSteps = [
-  'Capture a memory event from user input, tool output, transaction, document, or agent observation.',
-  'Package it with source trace, timestamp, hash, expiry, and trust metadata.',
-  'Revise, expire, flag, or resolve conflicts as the agent learns over time.',
-  'Produce a recall proof when the memory influences a future answer or action.',
+const flowSteps = [
+  ['01', 'Capture', 'Memory is created from user input, tools, documents, transactions, or agent observations.'],
+  ['02', 'Seal', 'Engram packages the memory with source trace, timestamp, hash, expiry, and trust metadata.'],
+  ['03', 'Govern', 'Policy decides what can be stored, recalled, flagged, revised, or forgotten.'],
+  ['04', 'Prove', 'Recall creates a proof bound to the packet hash and ledger event.'],
+]
+
+const policies = [
+  ['remember.sensitive', 'Requires approval before sensitive memory can be stored.'],
+  ['recall.sensitive', 'Requires approval before sensitive memory can be recalled.'],
+  ['remember.tool_result_ttl', 'Adds a short expiry and trust cap to tool-output memory.'],
+  ['memory.deleted', 'Removes active memory while preserving an auditable deletion event.'],
+]
+
+const comparisonRows = [
+  ['Memory type', 'Stored text', 'Verifiable packet'],
+  ['Source', 'Often unclear', 'Source trace required'],
+  ['Mutation', 'Silent overwrite', 'Revision trail'],
+  ['Recall', 'Unexplained context', 'Recall proof'],
+  ['Risk', 'Persistent hallucination', 'Flag, expire, resolve'],
+]
+
+const packetJson = [
+  '{',
+  '  "id": "mem_7Lh9QeV2mKp4cN8a",',
+  '  "content": "User prefers cold black premium branding.",',
+  '  "source": {',
+  '    "kind": "user_input",',
+  '    "label": "launch-chat",',
+  '    "observedAt": "2026-05-23T02:14:00Z"',
+  '  },',
+  '  "hash": "8f13Kp9rYtV6a91cQz2mN4bL",',
+  '  "policy": "recall.default_allow",',
+  '  "revision": 0,',
+  '  "conflictState": "none",',
+  '  "trustScore": 0.92',
+  '}',
+]
+
+const packetChecks = [
+  ['source_trace', 'attached'],
+  ['hash_integrity', 'valid'],
+  ['policy_gate', 'passed'],
+  ['ledger_event', 'memory.recalled'],
+  ['recall_proof', '8NqR4...pZ7T'],
+]
+
+const useCases = [
+  ['Personal agents', 'Preferences, routines, relationships, and long-term intent with user-controlled deletion.'],
+  ['Trading agents', 'Risk signals, failed strategies, suspicious wallets, and decision trails with proof.'],
+  ['Enterprise agents', 'Meeting decisions, customer state, review history, and stale-data protection.'],
+  ['Multi-agent systems', 'Shared memory that other agents can verify, question, revise, or reject.'],
 ]
 
 function App() {
+  const [activeViewId, setActiveViewId] = useState(sdkViews[0].id)
+  const activeView = sdkViews.find((view) => view.id === activeViewId) ?? sdkViews[0]
+
   return (
     <main>
-      <section className="hero-section" id="top">
+      <section className="hero-shell" id="top">
         <nav className="nav-bar" aria-label="Primary navigation">
-          <a className="brand-lockup" href="#top" aria-label="Engram Protocol home">
+          <a className="brand" href="#top" aria-label="Engram Protocol">
             <img src="/brand/engram-logo.png" alt="" />
             <span>Engram Protocol</span>
           </a>
           <div className="nav-links">
-            <a href="#packet">Packet</a>
+            <a href="#sdk">SDK</a>
             <a href="#protocol">Protocol</a>
-            <a href="#launch">Launch</a>
+            <a href="#policy">Policy</a>
+            <a href="#use-cases">Use Cases</a>
           </div>
+          <a className="nav-cta" href="https://github.com/recallproof/EGRAM" target="_blank">
+            GitHub
+            <ArrowRight size={16} strokeWidth={1.8} />
+          </a>
         </nav>
 
-        <div className="hero-grid">
-          <div className="hero-copy">
-            <p className="eyebrow">$ENG / VERIFIABLE MEMORY</p>
-            <h1>Engram Protocol</h1>
-            <p className="lede">The trust layer for agent memory.</p>
-            <p className="hero-text">
-              Autonomous agents should not only remember. They should prove what they remember,
-              where it came from, whether it changed, and why it is being recalled now.
-            </p>
-            <div className="hero-actions">
-              <a className="primary-action" href="#packet">
-                Explore packets
-                <ArrowUpRight size={18} strokeWidth={1.8} />
-              </a>
-              <a className="secondary-action" href="#launch">
-                Launch narrative
-              </a>
-            </div>
+        <div className="hero-content">
+          <div className="announcement">
+            <span>$ENG</span>
+            <span>Verifiable memory protocol for autonomous agents</span>
           </div>
-
-          <div className="symbol-stage" aria-hidden="true">
-            <img src="/brand/engram-logo.png" alt="" />
-            <div className="proof-strip">
-              <span>source: user.intent</span>
-              <span>hash: 0x7E4C</span>
-              <span>recall: verified</span>
-            </div>
+          <h1>Memory agents can prove.</h1>
+          <p className="hero-lede">
+            Engram Protocol turns agent memory into structured, policy-governed packets
+            with source trace, hash, revision history, expiry, and recall proof.
+          </p>
+          <div className="hero-actions">
+            <a className="primary-action" href="#sdk">
+              Build with Engram
+              <ArrowRight size={18} strokeWidth={1.8} />
+            </a>
+            <a className="secondary-action" href="#protocol">
+              Explore protocol
+            </a>
           </div>
         </div>
-      </section>
 
-      <section className="thesis-band">
-        <p>
-          The future of agents is not bigger context. It is verifiable memory.
-        </p>
-      </section>
-
-      <section className="section packet-section" id="packet">
-        <div className="section-heading">
-          <p className="eyebrow">MEMORY PACKET</p>
-          <h2>Memory becomes an object agents can prove.</h2>
-        </div>
-        <div className="packet-grid">
-          <div className="packet-visual">
-            <div className="packet-core">
-              <Sparkles size={18} strokeWidth={1.6} />
-              <span>memory.object</span>
-            </div>
-            {packetFields.map((field) => (
-              <div className="packet-row" key={field}>
-                <span>{field}</span>
-                <span>sealed</span>
-              </div>
+        <section className="developer-panel" id="sdk" aria-label="Engram SDK preview">
+          <div className="panel-tabs">
+            {sdkViews.map(({ id, label, icon: Icon }) => (
+              <button
+                type="button"
+                className={id === activeView.id ? 'active-tab' : undefined}
+                aria-pressed={id === activeView.id}
+                onClick={() => setActiveViewId(id)}
+                key={id}
+              >
+                <Icon size={15} strokeWidth={1.8} />
+                {label}
+              </button>
             ))}
           </div>
-          <div className="packet-copy">
-            <h3>Not stored text. Verifiable agent memory.</h3>
-            <p>
-              Engram turns a memory into a structured packet with provenance, revision state,
-              expiry logic, conflict awareness, and recall evidence. An agent no longer says
-              it remembers. It can show the shape of that memory.
-            </p>
+
+          <div className="console-grid">
+            <div className="code-window">
+              <div className="window-bar">
+                <span className="dot red"></span>
+                <span className="dot yellow"></span>
+                <span className="dot green"></span>
+                <span className="language-pill">{activeView.language}</span>
+              </div>
+              <pre aria-label="Engram SDK code example">
+                {activeView.code.map((line, index) => (
+                  <code key={`${line}-${index}`}>
+                    <span>{String(index + 1).padStart(2, '0')}</span>
+                    {line || ' '}
+                  </code>
+                ))}
+              </pre>
+            </div>
+
+            <div className="proof-window">
+              <div className="proof-header">
+                <img src="/brand/engram-logo.png" alt="" />
+                <div>
+                  <span>{activeView.proofTitle}</span>
+                  <strong>{activeView.proofStatus}</strong>
+                </div>
+              </div>
+              <div className="proof-list">
+                {activeView.proof.map(([label, value]) => (
+                  <div className="proof-row" key={label}>
+                    <span>{label}</span>
+                    <strong>{value}</strong>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
+        </section>
       </section>
 
-      <section className="section utilities-section">
+      <section className="signal-strip" aria-label="Protocol signals">
+        {proofStats.map(([label, value, href]) => (
+          <a href={href} key={label}>
+            <strong>{value}</strong>
+            <span>{label}</span>
+          </a>
+        ))}
+      </section>
+
+      <section className="section packet-section" id="protocol">
         <div className="section-heading">
-          <p className="eyebrow">WHAT USERS GET</p>
-          <h2>Control, correction, and proof for long-lived agents.</h2>
+          <span className="section-kicker">Memory Packet</span>
+          <h2>Not chat history. A verifiable memory object.</h2>
+          <p>
+            Engram is built around packets that can be inspected, corrected, expired,
+            flagged, and proven at recall time.
+          </p>
         </div>
-        <div className="utility-grid">
-          {utilities.map(({ icon: Icon, title, text }) => (
-            <article className="utility-card" key={title}>
-              <Icon size={22} strokeWidth={1.55} />
+        <div className="feature-grid">
+          {packetFields.map(({ icon: Icon, title, text }) => (
+            <article className="feature-card" key={title}>
+              <Icon size={22} strokeWidth={1.6} />
               <h3>{title}</h3>
               <p>{text}</p>
             </article>
@@ -158,32 +328,158 @@ function App() {
         </div>
       </section>
 
-      <section className="section protocol-section" id="protocol">
+      <section className="section comparison-section">
         <div className="section-heading">
-          <p className="eyebrow">PROTOCOL FLOW</p>
-          <h2>From memory event to recall proof.</h2>
+          <span className="section-kicker">Why Engram</span>
+          <h2>Memory without proof is just context with persistence.</h2>
+          <p>
+            Most AI memory products optimize for remembering more. Engram optimizes
+            for knowing which memory deserves trust.
+          </p>
         </div>
-        <div className="step-list">
-          {protocolSteps.map((step, index) => (
-            <div className="step" key={step}>
-              <span>{String(index + 1).padStart(2, '0')}</span>
-              <p>{step}</p>
+        <div className="comparison-table" aria-label="AI memory compared with Engram memory">
+          <div className="comparison-head">
+            <span></span>
+            <strong>Ordinary AI Memory</strong>
+            <strong>Engram Protocol</strong>
+          </div>
+          {comparisonRows.map(([label, ordinary, engram]) => (
+            <div className="comparison-row" key={label}>
+              <span>{label}</span>
+              <p>{ordinary}</p>
+              <p>
+                <FileCheck2 size={16} strokeWidth={1.7} />
+                {engram}
+              </p>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="launch-section" id="launch">
-        <div>
-          <p className="eyebrow">PUMP LAUNCH LINE</p>
-          <h2>Engram Protocol ($ENG)</h2>
-          <p>Verifiable memory for autonomous agents.</p>
+      <section className="section live-packet-section" id="packet">
+        <div className="section-heading">
+          <span className="section-kicker">Live Packet</span>
+          <h2>A memory packet should be inspectable before it is trusted.</h2>
+          <p>
+            Engram exposes the packet body, integrity state, policy decision, and recall
+            proof as first-class protocol objects.
+          </p>
         </div>
-        <a className="primary-action" href="#top">
-          Back to top
-          <ArrowUpRight size={18} strokeWidth={1.8} />
-        </a>
+        <div className="live-packet-grid">
+          <div className="json-window">
+            <div className="window-bar">
+              <span className="dot red"></span>
+              <span className="dot yellow"></span>
+              <span className="dot green"></span>
+              <span className="language-pill">MemoryPacket</span>
+            </div>
+            <pre aria-label="Live memory packet JSON">
+              {packetJson.map((line, index) => (
+                <code key={`${line}-${index}`}>
+                  <span>{String(index + 1).padStart(2, '0')}</span>
+                  {line}
+                </code>
+              ))}
+            </pre>
+          </div>
+          <div className="inspection-panel">
+            <div>
+              <span className="section-kicker">Inspection Result</span>
+              <h3>trusted for recall</h3>
+            </div>
+            <div className="inspection-list">
+              {packetChecks.map(([label, value]) => (
+                <div className="inspection-row" key={label}>
+                  <span>{label}</span>
+                  <strong>{value}</strong>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </section>
+
+      <section className="section flow-section">
+        <div className="section-heading compact">
+          <span className="section-kicker">Protocol Flow</span>
+          <h2>Capture, seal, govern, prove.</h2>
+        </div>
+        <div className="flow-list">
+          {flowSteps.map(([number, title, text]) => (
+            <div className="flow-step" key={number}>
+              <span>{number}</span>
+              <h3>{title}</h3>
+              <p>{text}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="section policy-section" id="policy">
+        <div className="policy-layout">
+          <div className="section-heading compact">
+            <span className="section-kicker">Policy Layer</span>
+            <h2>Memory needs rules before it becomes infrastructure.</h2>
+            <p>
+              Engram policies decide what can be remembered, recalled, approved, capped,
+              expired, or deleted. The rule ID is written into the ledger for auditability.
+            </p>
+          </div>
+          <div className="policy-console">
+            <div className="policy-line">
+              <KeyRound size={18} strokeWidth={1.6} />
+              <span>approvedPolicyIds: ['recall.sensitive']</span>
+            </div>
+            {policies.map(([rule, text]) => (
+              <div className="policy-row" key={rule}>
+                <strong>{rule}</strong>
+                <span>{text}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="section usecase-section" id="use-cases">
+        <div className="section-heading">
+          <span className="section-kicker">Use Cases</span>
+          <h2>For agents that live longer than one session.</h2>
+        </div>
+        <div className="usecase-grid">
+          {useCases.map(([title, text]) => (
+            <article className="usecase-card" key={title}>
+              <h3>{title}</h3>
+              <p>{text}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="section final-section">
+        <div>
+          <span className="section-kicker">$ENG</span>
+          <h2>The trust layer for agent memory.</h2>
+          <p>
+            Agents should not only remember. They should prove what they remember.
+          </p>
+        </div>
+        <div className="final-actions">
+          <a className="primary-action" href="https://github.com/recallproof/EGRAM" target="_blank">
+            View repository
+            <ArrowRight size={18} strokeWidth={1.8} />
+          </a>
+        </div>
+      </section>
+
+      <footer>
+        <a className="brand" href="#top" aria-label="Engram Protocol">
+          <img src="/brand/engram-logo.png" alt="" />
+          <span>Engram Protocol</span>
+        </a>
+        <div>
+          <span>Verifiable memory for autonomous agents.</span>
+        </div>
+      </footer>
     </main>
   )
 }
