@@ -4,14 +4,17 @@ import {
   BadgeCheck,
   Clock3,
   Code2,
+  FileCode2,
   FileCheck2,
   Fingerprint,
+  GitBranch,
   GitCompareArrows,
   KeyRound,
   LockKeyhole,
   Network,
   ShieldCheck,
   Split,
+  TerminalSquare,
 } from 'lucide-react'
 import './App.css'
 
@@ -112,6 +115,37 @@ const proofStats = [
   ['Recall proof', 'hash-bound', '#sdk'],
 ]
 
+const repoProofs = [
+  {
+    icon: GitBranch,
+    title: 'CI verified',
+    text: 'GitHub Actions runs lint, tests, build, and the protocol demo on every push.',
+    label: 'View CI',
+    href: 'https://github.com/recallproof/EGRAM/actions/workflows/ci.yml',
+  },
+  {
+    icon: TerminalSquare,
+    title: 'Runnable CLI demo',
+    text: 'npm run demo emits a packet hash, recall proof, ledger chain, and verification result.',
+    label: 'CLI source',
+    href: 'https://github.com/recallproof/EGRAM/blob/main/src/protocol/cli.ts',
+  },
+  {
+    icon: FileCode2,
+    title: 'Agent example',
+    text: 'A minimal agent integration shows remember, recall, ledger events, and snapshot verification.',
+    label: 'Example',
+    href: 'https://github.com/recallproof/EGRAM/blob/main/examples/basic-agent.ts',
+  },
+  {
+    icon: FileCheck2,
+    title: 'Protocol spec',
+    text: 'MemoryPacket, RecallProof, LedgerEvent, policy decisions, and snapshot rules are documented.',
+    label: 'Read spec',
+    href: 'https://github.com/recallproof/EGRAM/blob/main/docs/protocol-spec.md',
+  },
+]
+
 const packetFields = [
   {
     icon: Fingerprint,
@@ -192,6 +226,21 @@ const packetChecks = [
   ['recall_proof', '8NqR4...pZ7T'],
 ]
 
+const demoOutput = [
+  '{',
+  '  "verified": {',
+  '    "packet": true,',
+  '    "proof": true,',
+  '    "ledger": true',
+  '  },',
+  '  "ledger": [',
+  '    { "type": "memory.created" },',
+  '    { "type": "memory.revised" },',
+  '    { "type": "memory.recalled" }',
+  '  ]',
+  '}',
+]
+
 const useCases = [
   ['Personal agents', 'Preferences, routines, relationships, and long-term intent with user-controlled deletion.'],
   ['Trading agents', 'Risk signals, failed strategies, suspicious wallets, and decision trails with proof.'],
@@ -215,6 +264,7 @@ function App() {
             <a href="#sdk">SDK</a>
             <a href="#protocol">Protocol</a>
             <a href="#policy">Policy</a>
+            <a href="#repo">Repo</a>
             <a href="#use-cases">Use Cases</a>
           </div>
           <a className="nav-cta" href="https://github.com/recallproof/EGRAM" target="_blank">
@@ -306,6 +356,48 @@ function App() {
             <span>{label}</span>
           </a>
         ))}
+      </section>
+
+      <section className="section repo-section" id="repo">
+        <div className="section-heading">
+          <span className="section-kicker">Repository Proof</span>
+          <h2>Not a landing page wrapped around an empty repo.</h2>
+          <p>
+            The repository ships with protocol code, tests, CI, a runnable demo,
+            an agent example, and a written object model.
+          </p>
+        </div>
+        <div className="repo-layout">
+          <div className="repo-card-grid">
+            {repoProofs.map(({ icon: Icon, title, text, label, href }) => (
+              <article className="repo-card" key={title}>
+                <Icon size={22} strokeWidth={1.6} />
+                <h3>{title}</h3>
+                <p>{text}</p>
+                <a href={href} target="_blank">
+                  {label}
+                  <ArrowRight size={15} strokeWidth={1.8} />
+                </a>
+              </article>
+            ))}
+          </div>
+          <div className="demo-output">
+            <div className="window-bar">
+              <span className="dot red"></span>
+              <span className="dot yellow"></span>
+              <span className="dot green"></span>
+              <span className="language-pill">npm run demo</span>
+            </div>
+            <pre aria-label="Protocol demo output">
+              {demoOutput.map((line, index) => (
+                <code key={`${line}-${index}`}>
+                  <span>{String(index + 1).padStart(2, '0')}</span>
+                  {line}
+                </code>
+              ))}
+            </pre>
+          </div>
+        </div>
       </section>
 
       <section className="section packet-section" id="protocol">

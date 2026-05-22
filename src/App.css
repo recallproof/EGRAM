@@ -52,6 +52,7 @@ button {
 .developer-panel,
 .signal-strip,
 .section-heading,
+.repo-layout,
 .feature-grid,
 .comparison-table,
 .live-packet-grid,
@@ -259,9 +260,11 @@ h1 {
 
 .code-window,
 .json-window,
+.demo-output,
 .proof-window,
 .feature-card,
 .inspection-panel,
+.repo-card,
 .policy-console,
 .usecase-card {
   background: rgba(255, 255, 255, 0.045);
@@ -270,7 +273,8 @@ h1 {
 }
 
 .code-window,
-.json-window {
+.json-window,
+.demo-output {
   min-width: 0;
   overflow: hidden;
 }
@@ -460,6 +464,60 @@ footer span {
   background: #090909;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   padding: 98px 24px;
+}
+
+.repo-section {
+  background:
+    radial-gradient(circle at 80% 20%, rgba(114, 231, 255, 0.075), transparent 26%),
+    linear-gradient(180deg, #0b0b0c, #060606);
+}
+
+.repo-layout {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 0.72fr);
+}
+
+.repo-card-grid {
+  display: grid;
+  gap: 1px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.repo-card {
+  box-shadow: none;
+  min-height: 230px;
+  padding: 24px;
+}
+
+.repo-card svg {
+  color: var(--accent-cyan);
+  margin-bottom: 24px;
+}
+
+.repo-card p {
+  color: #a7aeb8;
+  font-size: 15px;
+  line-height: 1.6;
+  margin-top: 12px;
+}
+
+.repo-card a {
+  align-items: center;
+  color: var(--accent-cyan);
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 800;
+  gap: 8px;
+  margin-top: 22px;
+}
+
+.demo-output {
+  align-self: stretch;
+}
+
+.demo-output code {
+  grid-template-columns: 42px minmax(360px, 1fr);
 }
 
 .section-heading {
@@ -790,10 +848,15 @@ footer {
   }
 
   .console-grid,
+  .repo-layout,
   .feature-grid,
   .live-packet-grid,
   .policy-layout,
   .usecase-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .repo-card-grid {
     grid-template-columns: 1fr;
   }
 
@@ -863,6 +926,10 @@ footer {
     padding: 0 14px;
     white-space: pre-wrap;
     word-break: break-word;
+  }
+
+  .demo-output code {
+    grid-template-columns: 34px minmax(0, 1fr);
   }
 
   .proof-row {
