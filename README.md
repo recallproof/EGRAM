@@ -2,6 +2,9 @@
 
 The trust layer for agent memory.
 
+[![Deploy website](https://github.com/recallproof/EGRAM/actions/workflows/deploy.yml/badge.svg)](https://github.com/recallproof/EGRAM/actions/workflows/deploy.yml)
+[![CI](https://github.com/recallproof/EGRAM/actions/workflows/ci.yml/badge.svg)](https://github.com/recallproof/EGRAM/actions/workflows/ci.yml)
+
 Engram Protocol turns autonomous agent memory into structured, traceable, and verifiable memory packets. The project narrative is built around a simple claim:
 
 > The future of agents is not bigger context. It is verifiable memory.
@@ -29,6 +32,31 @@ Every memory packet can carry:
 - `src/protocol/conflict.ts`: detect direct conflicts between memory packets
 - `src/protocol/snapshot.ts`: export and verify portable memory snapshots
 - `src/protocol/demo.ts`: runnable protocol flow for product demos
+
+## Repository Map
+
+- `src/protocol`: protocol SDK core
+- `examples/basic-agent.ts`: minimal agent integration example
+- `docs/protocol-spec.md`: protocol object model and verification rules
+- `docs/roadmap.md`: current and planned protocol work
+- `src/App.tsx`: project website
+
+## Quick Verification
+
+Run the protocol demo:
+
+```bash
+npm run demo
+```
+
+Expected output includes:
+
+- a memory packet hash
+- a recall proof hash
+- chained ledger events
+- `verified.packet: true`
+- `verified.proof: true`
+- `verified.ledger: true`
 
 ## SDK Shape
 
@@ -104,4 +132,5 @@ npm run dev
 npm run test
 npm run build
 npm run lint
+npm run demo
 ```
