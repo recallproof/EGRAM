@@ -41,6 +41,12 @@ export {
   type MemorySearchResult,
   type MemoryStore,
 } from './store'
+export {
+  verifyPacketBundle,
+  type VerificationCheck,
+  type VerificationReport,
+  type VerificationStatus,
+} from './verifier'
 export type {
   ConflictState,
   CreateMemoryPacketInput,

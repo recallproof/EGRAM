@@ -2,7 +2,7 @@
 
 Verifiable memory protocol for autonomous agents.
 
-[Website](http://egram.fun/) · [X / Twitter](https://x.com/recallproof) · [Protocol Spec](docs/protocol-spec.md) · [Roadmap](docs/roadmap.md)
+[Website](http://egram.fun/) | [X / Twitter](https://x.com/recallproof) | [Protocol Spec](docs/protocol-spec.md) | [Roadmap](docs/roadmap.md)
 
 [![CI](https://github.com/recallproof/EGRAM/actions/workflows/ci.yml/badge.svg)](https://github.com/recallproof/EGRAM/actions/workflows/ci.yml)
 [![Deploy website](https://github.com/recallproof/EGRAM/actions/workflows/deploy.yml/badge.svg)](https://github.com/recallproof/EGRAM/actions/workflows/deploy.yml)
@@ -34,6 +34,7 @@ memory event
   -> policy decision
   -> ledger event
   -> recall proof
+  -> verification report
   -> verifiable snapshot
 ```
 
@@ -46,6 +47,7 @@ memory event
 | `LedgerEvent` | Append-only event for created, revised, recalled, flagged, expired, or deleted memory. |
 | `MemorySnapshot` | Portable export of packets and ledger events with a snapshot hash. |
 | `MemoryPolicy` | Rule layer for remember/recall approvals, sensitive memory, expiry, and trust caps. |
+| `VerificationReport` | Detailed verifier output for packet, proof, ledger, and snapshot checks. |
 
 ## Quick Verification
 
@@ -62,6 +64,9 @@ The demo emits a real packet, recall proof, ledger chain, and verification resul
     "packet": true,
     "proof": true,
     "ledger": true
+  },
+  "verificationReport": {
+    "status": "pass"
   }
 }
 ```
@@ -75,7 +80,7 @@ npm run check
 ## SDK Example
 
 ```ts
-import { EngramMemory } from './src/protocol'
+import { EngramMemory, verifyPacketBundle } from './src/protocol'
 
 const memory = new EngramMemory()
 
@@ -98,10 +103,17 @@ const recalls = await memory.recall({
 })
 
 const snapshot = await memory.snapshot()
+const report = await verifyPacketBundle({
+  packet,
+  proof: recalls[0].proof,
+  ledger: memory.ledger(),
+  snapshot,
+})
 
 console.log(packet.hash)
 console.log(recalls[0].proof.proofHash)
 console.log(snapshot.snapshotHash)
+console.log(report.status)
 ```
 
 ## Agent API
@@ -114,6 +126,19 @@ console.log(snapshot.snapshotHash)
 | `flag()` | Mark memory as sensitive, stale, poisoned, disproven, or false. |
 | `forget()` | Remove active memory while preserving a deletion ledger event. |
 | `snapshot()` | Export packets and ledger events into a verifiable snapshot. |
+
+## Verifier API
+
+`verifyPacketBundle()` produces a structured report instead of a bare boolean.
+
+Checks currently include:
+
+- `packet.integrity`
+- `proof.binding`
+- `ledger.chain`
+- `snapshot.integrity`
+
+Each check includes a `pass` or `fail` status and a short diagnostic detail.
 
 ## Policy Layer
 
@@ -151,6 +176,7 @@ src/protocol/
   policy.ts           remember/recall policy layer
   store.ts            pluggable memory store interface
   snapshot.ts         portable snapshot export and verification
+  verifier.ts         detailed packet/proof/ledger verification reports
   conflict.ts         direct memory conflict detection
   canonical.ts        deterministic canonical serialization
   hash.ts             SHA-256 hashing helpers
@@ -189,6 +215,7 @@ Implemented:
 - policy-gated remember and recall
 - chained ledger events
 - verifiable snapshots
+- detailed verifier reports
 - in-memory store
 - CLI demo
 - CI verification
@@ -196,7 +223,7 @@ Implemented:
 Next:
 
 - JSON schema exports
-- packet verifier CLI
+- packet verifier CLI commands
 - persistent storage adapters
 - signed packet attestations
 - Solana-oriented ledger root checkpointing

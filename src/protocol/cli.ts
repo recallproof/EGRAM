@@ -1,7 +1,13 @@
 #!/usr/bin/env node
 import { runProtocolDemo } from './demo'
+import { verifyPacketBundle } from './verifier'
 
 const result = await runProtocolDemo()
+const verificationReport = await verifyPacketBundle({
+  packet: result.packet,
+  proof: result.proof,
+  ledger: result.ledger,
+})
 
 console.log(
   JSON.stringify(
@@ -20,6 +26,7 @@ console.log(
         previousEventHash: event.previousEventHash,
       })),
       verified: result.verified,
+      verificationReport,
     },
     null,
     2,
