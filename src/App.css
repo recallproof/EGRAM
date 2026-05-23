@@ -29,24 +29,6 @@ button {
   position: relative;
 }
 
-.hero-shell::before,
-.hero-shell::after {
-  background: rgba(242, 244, 247, 0.08);
-  content: '';
-  height: 100%;
-  position: absolute;
-  top: 0;
-  width: 1px;
-}
-
-.hero-shell::before {
-  left: max(24px, calc((100vw - 1180px) / 2));
-}
-
-.hero-shell::after {
-  right: max(24px, calc((100vw - 1180px) / 2));
-}
-
 .nav-bar,
 .hero-content,
 .developer-panel,
