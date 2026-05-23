@@ -220,6 +220,7 @@ h1 {
 
 .developer-panel {
   margin-top: 78px;
+  max-width: 1088px;
 }
 
 .panel-tabs {
