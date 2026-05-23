@@ -39,7 +39,7 @@ describe('EngramMemory agent API', () => {
       metadata: { topic: 'ticker' },
     })
     const revised = await memory.revise(packet.id, {
-      content: 'The ticker is ENG.',
+      content: 'The ticker is ENGRAM.',
       reason: 'Shorter ticker selected.',
       changedAt: '2026-05-23T01:04:00.000Z',
     })

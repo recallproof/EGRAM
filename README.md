@@ -230,4 +230,4 @@ Next:
 
 ## Launch Line
 
-Engram Protocol ($ENG) is the trust layer for agent memory.
+Engram Protocol ($ENGRAM) is the trust layer for agent memory.

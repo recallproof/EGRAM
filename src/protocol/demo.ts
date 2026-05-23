@@ -19,7 +19,7 @@ export async function runProtocolDemo() {
     createdAt: '2026-05-23T00:01:00.000Z',
     metadata: {
       topic: 'project.positioning',
-      launchTicker: 'ENG',
+      launchTicker: 'ENGRAM',
     },
   })
 

@@ -275,7 +275,7 @@ function App() {
 
         <div className="hero-content">
           <div className="announcement">
-            <span>$ENG</span>
+            <span>$ENGRAM</span>
             <span>Verifiable memory protocol for autonomous agents</span>
           </div>
           <h1>Memory agents can prove.</h1>
@@ -549,7 +549,7 @@ function App() {
 
       <section className="section final-section">
         <div>
-          <span className="section-kicker">$ENG</span>
+          <span className="section-kicker">$ENGRAM</span>
           <h2>The trust layer for agent memory.</h2>
           <p>
             Agents should not only remember. They should prove what they remember.

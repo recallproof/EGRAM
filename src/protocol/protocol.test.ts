@@ -50,7 +50,7 @@ describe('Engram protocol core', () => {
       createdAt: '2026-05-23T00:03:00.000Z',
     })
     const revised = await reviseMemoryPacket(packet, {
-      content: 'Ticker is ENG.',
+      content: 'Ticker is ENGRAM.',
       reason: 'User selected a short ticker.',
       changedAt: '2026-05-23T00:04:00.000Z',
     })
